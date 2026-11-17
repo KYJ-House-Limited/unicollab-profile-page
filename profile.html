@@ -140,6 +140,20 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
 .foot .legal{margin-top:8px;font-size:12px;}
 
 .empty{font-size:13.5px;color:var(--ink-3);}
+.team-did{margin-top:6px;padding:14px 16px;background:#f7f8fc;border-radius:12px;}
+.team-did h4{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;}
+.team-did .td{font-size:14px;color:var(--ink-2);margin-top:6px;}
+.team-did .td b{color:var(--ink);}
+.stars{color:#F5B301;letter-spacing:1px;white-space:nowrap;}
+.stars .off{color:#d6d6dc;}
+.rev-sum{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.rev-sum .num{font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--ink);}
+.rev-sum .cnt{font-size:13px;color:var(--ink-3);}
+.review{padding:16px 0;border-top:1px solid var(--line);}
+.review .rh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.review .who{font-size:14px;font-weight:700;color:var(--ink);}
+.review .proj{font-size:12.5px;color:var(--ink-3);}
+.review p{font-size:14.5px;color:var(--ink-2);margin-top:8px;white-space:pre-wrap;}
 .state{padding:80px 24px;text-align:center;font-size:14.5px;color:var(--ink-3);}
 @media print{.topbar{position:static;}.top-actions{display:none;}body{background:#fff;}.card,.hero{box-shadow:none;border:1px solid var(--line);}
   /* The CV lives in a hidden modal (#cvModal) for normal browsing — print
@@ -159,6 +173,7 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
 .menu-dropdown:not([hidden]){display:block;}
 .menu-dropdown[hidden]{display:none;}
 .menu-item{display:block;width:100%;text-align:left;background:none;border:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);padding:11px 14px;border-radius:10px;cursor:pointer;}
+a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
 .menu-item:hover{background:var(--ice-bg);color:var(--navy);}
 .about-overlay{position:fixed;inset:0;z-index:50;background:rgba(17,17,17,.55);align-items:center;justify-content:center;padding:24px;}
 .about-overlay:not([hidden]){display:flex;}
@@ -192,7 +207,7 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
         <div class="menu-dropdown" id="menuDropdown" hidden>
           <button class="menu-item" id="shareBtn">Share</button>
           <button class="menu-item" id="downloadBtn">Download PDF</button>
-          <button class="menu-item" id="aboutBtn">About UniCollab</button>
+          <a class="menu-item" href="https://unicollab.co.uk/about/">About UniCollab</a>
         </div>
       </div>
     </div>
@@ -418,6 +433,11 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
                 + (lineBits.length ? '<div class="p-line">' + lineBits.join(' · ') + '</div>' : '')
                 + (proj.description ? '<p>' + esc(proj.description) + '</p>' : '')
                 + gridHtml
+                + ((proj.teamContributions && proj.teamContributions.length)
+                    ? '<div class="team-did"><h4>What the team did</h4>' + proj.teamContributions.map(function (c) {
+                        return '<div class="td"><b>' + esc(c.name) + '</b> — ' + esc(c.description) + '</div>';
+                      }).join('') + '</div>'
+                    : '')
                 + outcomesHtml
                 + '</div>';
             }).join('')
@@ -456,6 +476,26 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
           : '<p class="empty">No public portfolio pieces yet.</p>')
       + '</div>';
 
+    // Teammates' reviews from completed projects (the student can hide any;
+    // hidden ones never reach this page). Only shown when there are some.
+    function starsHtml(n) {
+      var out = '';
+      for (var i = 1; i <= 5; i++) out += i <= n ? '★' : '<span class="off">★</span>';
+      return '<span class="stars" aria-label="' + n + ' out of 5 stars">' + out + '</span>';
+    }
+    var reviews = data.reviews || [], reviewSummary = data.reviewSummary || { average: 0, count: 0 };
+    var reviewsHtml = reviews.length
+      ? '<div class="card"><h2>Reviews from teammates</h2>'
+        + '<div class="rev-sum"><span class="num">' + reviewSummary.average.toFixed(1) + '</span><div>' + starsHtml(Math.round(reviewSummary.average))
+        + '<div class="cnt">' + reviewSummary.count + (reviewSummary.count === 1 ? ' review' : ' reviews') + '</div></div></div>'
+        + reviews.map(function (r) {
+            return '<div class="review"><div class="rh"><div><div class="who">' + esc(r.reviewer) + '</div>'
+              + (r.project ? '<div class="proj">' + esc(r.project) + '</div>' : '') + '</div>' + starsHtml(r.rating) + '</div>'
+              + (r.comment ? '<p>' + esc(r.comment) + '</p>' : '') + '</div>';
+          }).join('')
+        + '</div>'
+      : '';
+
     var cvExp = (p.cv && p.cv.experiences) || [];
     var hasCv = !!(p.cv && (p.cv.summary || cvExp.length));
 
@@ -486,7 +526,7 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
       : '';
 
     var colsHtml = '<div class="cols">'
-      + '<div class="main">' + skillsHtml + projectsHtml + portfolioHtml + '</div>'
+      + '<div class="main">' + skillsHtml + projectsHtml + portfolioHtml + reviewsHtml + '</div>'
       + '<div class="side">' + linksHtml + ctaHtml + cvCtaHtml + verifyHtml + '</div>'
       + '</div>';
 
