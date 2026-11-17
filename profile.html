@@ -153,6 +153,7 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
 .review .rh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
 .review .who{font-size:14px;font-weight:700;color:var(--ink);}
 .review .proj{font-size:12.5px;color:var(--ink-3);}
+.review .emp{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:100px;background:var(--ice-bg);color:var(--navy);font-size:11px;font-weight:700;vertical-align:middle;}
 .review p{font-size:14.5px;color:var(--ink-2);margin-top:8px;white-space:pre-wrap;}
 .state{padding:80px 24px;text-align:center;font-size:14.5px;color:var(--ink-3);}
 @media print{.topbar{position:static;}.top-actions{display:none;}body{background:#fff;}.card,.hero{box-shadow:none;border:1px solid var(--line);}
@@ -484,17 +485,20 @@ a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
       return '<span class="stars" aria-label="' + n + ' out of 5 stars">' + out + '</span>';
     }
     var reviews = data.reviews || [], reviewSummary = data.reviewSummary || { average: 0, count: 0 };
-    var reviewsHtml = reviews.length
-      ? '<div class="card"><h2>Reviews from teammates</h2>'
+    var reviewsHtml = '<div class="card"><h2>Reviews</h2>'
+      + (reviews.length
+      ? ''
         + '<div class="rev-sum"><span class="num">' + reviewSummary.average.toFixed(1) + '</span><div>' + starsHtml(Math.round(reviewSummary.average))
         + '<div class="cnt">' + reviewSummary.count + (reviewSummary.count === 1 ? ' review' : ' reviews') + '</div></div></div>'
         + reviews.map(function (r) {
-            return '<div class="review"><div class="rh"><div><div class="who">' + esc(r.reviewer) + '</div>'
-              + (r.project ? '<div class="proj">' + esc(r.project) + '</div>' : '') + '</div>' + starsHtml(r.rating) + '</div>'
+            var isEmp = r.kind === 'employer';
+            return '<div class="review"><div class="rh"><div><div class="who">' + esc(r.reviewer) + (isEmp ? ' <span class="emp">Employer</span>' : '') + '</div>'
+              + (r.project ? '<div class="proj">' + (isEmp ? 'Hired · ' : '') + esc(r.project) + '</div>' : '') + '</div>' + starsHtml(r.rating) + '</div>'
               + (r.comment ? '<p>' + esc(r.comment) + '</p>' : '') + '</div>';
           }).join('')
-        + '</div>'
-      : '';
+        
+      : '<p class="empty">No reviews yet. Teammates can review ' + esc(firstName) + ' after finishing a project together, and employers after hiring them.</p>')
+      + '</div>';
 
     var cvExp = (p.cv && p.cv.experiences) || [];
     var hasCv = !!(p.cv && (p.cv.summary || cvExp.length));
