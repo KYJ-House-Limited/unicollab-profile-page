@@ -151,7 +151,12 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
 .rev-sum .cnt{font-size:13px;color:var(--ink-3);}
 .review{padding:14px 0;border-top:1px solid var(--line);}
 .side .card + .card{margin-top:20px;}
-.review .rh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.rev-all{display:block;width:100%;margin-top:14px;text-align:center;}
+#reviewsModal .review:first-of-type{border-top:none;}
+@media print{#reviewsModal{display:none!important;}}
+.review .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.review .rh > div:first-child{flex:1;min-width:0;}
+.review .rh .stars{flex:none;font-size:13px;}
 .review .who{font-size:14px;font-weight:700;color:var(--ink);}
 .review .proj{font-size:12.5px;color:var(--ink-3);}
 .review .emp{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:100px;background:var(--ice-bg);color:var(--navy);font-size:11px;font-weight:700;vertical-align:middle;}
@@ -242,6 +247,14 @@ a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
       <button class="about-close" id="cvClose" aria-label="Close">&times;</button>
       <h2 id="cvModalTitle">My CV</h2>
       <div id="cvModalBody"></div>
+    </div>
+  </div>
+
+  <div class="about-overlay" id="reviewsModal" hidden>
+    <div class="about-panel cv-panel">
+      <button class="about-close" id="reviewsClose" aria-label="Close">&times;</button>
+      <h2 id="reviewsModalTitle">Reviews</h2>
+      <div id="reviewsModalBody"></div>
     </div>
   </div>
 
@@ -486,20 +499,25 @@ a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
       return '<span class="stars" aria-label="' + n + ' out of 5 stars">' + out + '</span>';
     }
     var reviews = data.reviews || [], reviewSummary = data.reviewSummary || { average: 0, count: 0 };
+    function reviewItemHtml(r) {
+      var isEmp = r.kind === 'employer';
+      return '<div class="review"><div class="rh"><div><div class="who">' + esc(r.reviewer) + (isEmp ? ' <span class="emp">Employer</span>' : '') + '</div>'
+        + (r.project ? '<div class="proj">' + (isEmp ? 'Hired · ' : '') + esc(r.project) + '</div>' : '') + '</div>' + starsHtml(r.rating) + '</div>'
+        + (r.comment ? '<p>' + esc(r.comment) + '</p>' : '') + '</div>';
+    }
+    var reviewSumHtml = reviews.length
+      ? '<div class="rev-sum"><span class="num">' + reviewSummary.average.toFixed(1) + '</span><div>' + starsHtml(Math.round(reviewSummary.average))
+        + '<div class="cnt">' + reviewSummary.count + (reviewSummary.count === 1 ? ' review' : ' reviews') + '</div></div></div>'
+      : '';
+    // The card shows the average and the two newest; "See all reviews"
+    // opens every review in a pop-up (same style as the CV pop-up).
     var reviewsHtml = '<div class="card"><h2>Reviews</h2>'
       + (reviews.length
-      ? ''
-        + '<div class="rev-sum"><span class="num">' + reviewSummary.average.toFixed(1) + '</span><div>' + starsHtml(Math.round(reviewSummary.average))
-        + '<div class="cnt">' + reviewSummary.count + (reviewSummary.count === 1 ? ' review' : ' reviews') + '</div></div></div>'
-        + reviews.map(function (r) {
-            var isEmp = r.kind === 'employer';
-            return '<div class="review"><div class="rh"><div><div class="who">' + esc(r.reviewer) + (isEmp ? ' <span class="emp">Employer</span>' : '') + '</div>'
-              + (r.project ? '<div class="proj">' + (isEmp ? 'Hired · ' : '') + esc(r.project) + '</div>' : '') + '</div>' + starsHtml(r.rating) + '</div>'
-              + (r.comment ? '<p>' + esc(r.comment) + '</p>' : '') + '</div>';
-          }).join('')
-        
-      : '<p class="empty">No reviews yet. Teammates can review ' + esc(firstName) + ' after finishing a project together, and employers after hiring them.</p>')
+          ? reviewSumHtml + reviews.slice(0, 2).map(reviewItemHtml).join('')
+            + '<button type="button" class="btn btn-ghost rev-all" id="reviewsOpenBtn">See all reviews' + (reviews.length > 2 ? ' (' + reviews.length + ')' : '') + '</button>'
+          : '<p class="empty">No reviews yet. Teammates can review ' + esc(firstName) + ' after finishing a project together, and employers after hiring them.</p>')
       + '</div>';
+    var reviewsModalBodyHtml = reviewSumHtml + reviews.map(reviewItemHtml).join('');
 
     var cvExp = (p.cv && p.cv.experiences) || [];
     var hasCv = !!(p.cv && (p.cv.summary || cvExp.length));
@@ -543,6 +561,13 @@ a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
     // of colsHtml above), so it's wired up here rather than in the static
     // script block below — same reason the hamburger menu's items are
     // wired there but this one has to be wired here instead.
+    var reviewsOpenBtn = document.getElementById('reviewsOpenBtn');
+    var reviewsModal = document.getElementById('reviewsModal');
+    if (reviewsOpenBtn && reviewsModal) {
+      document.getElementById('reviewsModalTitle').textContent = p.name ? p.name + '’s reviews' : 'Reviews';
+      document.getElementById('reviewsModalBody').innerHTML = reviewsModalBodyHtml;
+      reviewsOpenBtn.addEventListener('click', function () { reviewsModal.hidden = false; });
+    }
     var cvOpenBtn = document.getElementById('cvOpenBtn');
     var cvModal = document.getElementById('cvModal');
     var cvModalBody = document.getElementById('cvModalBody');
@@ -628,6 +653,11 @@ a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
       if (e.target === cvModal) cvModal.hidden = true;
     });
   }
+
+  var reviewsModalEl = document.getElementById('reviewsModal');
+  var reviewsCloseEl = document.getElementById('reviewsClose');
+  if (reviewsCloseEl && reviewsModalEl) reviewsCloseEl.addEventListener('click', function () { reviewsModalEl.hidden = true; });
+  if (reviewsModalEl) reviewsModalEl.addEventListener('click', function (e) { if (e.target === reviewsModalEl) reviewsModalEl.hidden = true; });
 
   var lightboxIndex = 0;
   var lightboxItem = -1;
