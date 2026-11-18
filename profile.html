@@ -149,7 +149,8 @@ h2{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
 .rev-sum{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
 .rev-sum .num{font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--ink);}
 .rev-sum .cnt{font-size:13px;color:var(--ink-3);}
-.review{padding:16px 0;border-top:1px solid var(--line);}
+.review{padding:14px 0;border-top:1px solid var(--line);}
+.side .card + .card{margin-top:20px;}
 .review .rh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
 .review .who{font-size:14px;font-weight:700;color:var(--ink);}
 .review .proj{font-size:12.5px;color:var(--ink-3);}
@@ -530,8 +531,8 @@ a.menu-item{display:block;text-decoration:none;box-sizing:border-box;}
       : '';
 
     var colsHtml = '<div class="cols">'
-      + '<div class="main">' + skillsHtml + projectsHtml + portfolioHtml + reviewsHtml + '</div>'
-      + '<div class="side">' + linksHtml + ctaHtml + cvCtaHtml + verifyHtml + '</div>'
+      + '<div class="main">' + skillsHtml + projectsHtml + portfolioHtml + '</div>'
+      + '<div class="side">' + linksHtml + reviewsHtml + ctaHtml + cvCtaHtml + verifyHtml + '</div>'
       + '</div>';
 
     var footHtml = '<div class="foot"><div class="legal">Copyright © ' + new Date().getFullYear() + ' KYJ House Ltd. All rights reserved. UniCollab&trade; is a trademark of KYJ House Ltd.</div></div>';
